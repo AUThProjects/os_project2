@@ -18,19 +18,20 @@
 #include <vector>
 using namespace std;
 
-enum typeOfRedirection {none, write, append};
+enum typeOfRedirection {none, replace, append};
 
 class Command {
 public:
 	Command();
 	Command(pid_t schedulerPID,
 			string* commandName,
-			vector<string> arguments,
+			vector<string>* arguments,
 			Command* pipelineTo,
 			typeOfRedirection redirectTo,
 			string* fileToRedirectTo,
 			bool redirectFrom,
 			string* fileToRedirectFrom);
+			void printInfo();
 	virtual ~Command();
 
 	int invoke();
@@ -39,7 +40,7 @@ private:
 	pid_t schedulerPID;
 
 	string* commandName;
-	vector<string> arguments;
+	vector<string>* arguments;
 
 	Command* pipelineTo;
 

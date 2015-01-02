@@ -21,7 +21,7 @@ Command::Command() {
 Command::Command(
 			pid_t schedulerPID,
 			string* commandName,
-			vector<string> arguments,
+			vector<string>* arguments,
 			Command* pipelineTo,
 			typeOfRedirection redirectTo,
 			string* fileToRedirectTo,
@@ -41,7 +41,7 @@ Command::Command(
 
 Command::~Command() {
 	delete commandName;
-	this->arguments.clear();
+	this->arguments->clear();
 	if(pipelineTo!=nullptr)
 		delete pipelineTo;
 	if(fileToRedirectTo!=nullptr)
@@ -52,13 +52,14 @@ Command::~Command() {
 
 int Command::invoke()
 {
-	if(this->commandName == "cd")
+	if(*(this->commandName) == "cd")
 	{
 		// 0 -> when found
 		// -1 -> not found
-		return chdir(arguments.at(0).c_str());
+		cout << "inside invoke chdir" << endl;
+		return chdir(arguments->at(0).c_str());
 	}
-	else if(this->commandName == "exit")
+	else if(*(this->commandName) == "exit")
 	{
 		// Scheduler will handle SIGINT signal
 		// and will kill all child processes
@@ -84,3 +85,11 @@ int Command::invoke()
 	return 0;
 }
 
+
+void Command::printInfo() {
+	cout << commandName;
+	for (int i=0;i<arguments->size();++i) {
+		cout << " " << arguments->at(i);
+	}
+	cout << endl;
+}
