@@ -8,7 +8,7 @@
 #include "../include/Command.h"
 
 Command::Command() {
-	// TODO Auto-generated constructor stub
+	this->schedulerPID = 0;
 	this->commandName = new string();
 	this->arguments = new vector<string>();
 	this->pipelineTo = nullptr;
@@ -18,7 +18,9 @@ Command::Command() {
 	this->fileToRedirectFrom = nullptr;
 }
 
-Command::Command(string* commandName,
+Command::Command(
+			pid_t schedulerPID,
+			string* commandName,
 			vector<string> arguments,
 			Command* pipelineTo,
 			typeOfRedirection redirectTo,
@@ -26,6 +28,7 @@ Command::Command(string* commandName,
 			bool redirectFrom,
 			string* fileToRedirectFrom)
 {
+	this->schedulerPID = schedulerPID;
 	this->commandName = commandName;
 	this->arguments = arguments;
 	this->pipelineTo = pipelineTo;
@@ -37,7 +40,6 @@ Command::Command(string* commandName,
 
 
 Command::~Command() {
-	// TODO Auto-generated destructor stub
 	delete commandName;
 	this->arguments.clear();
 	if(pipelineTo!=nullptr)
@@ -46,5 +48,39 @@ Command::~Command() {
 		delete fileToRedirectTo;
 	if(fileToRedirectFrom!=nullptr)
 		delete fileToRedirectFrom;
+}
+
+int Command::invoke()
+{
+	if(this->commandName == "cd")
+	{
+		// 0 -> when found
+		// -1 -> not found
+		return chdir(arguments.at(0).c_str());
+	}
+	else if(this->commandName == "exit")
+	{
+		// Scheduler will handle SIGINT signal
+		// and will kill all child processes
+		// and exit.
+		int exitCode = kill(schedulerPID, SIGINT);
+		exit(exitCode);
+	}
+	else
+	{
+		pid_t id = fork();
+		if(id==0)
+		{
+			//exec the command
+			cout << "Execution here.." << endl;
+		}
+		else
+		{
+			int* status;
+			cerr << "Process " << id << " started." << endl;
+			return waitpid(id, status, 0);
+		}
+	}
+	return 0;
 }
 
