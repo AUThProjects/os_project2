@@ -27,7 +27,7 @@ public:
 	void showPrompt();
 	Command getCommand(string command);
 	vector<string>* tokenize(string commandString, const char* delimiter);
-
+	static void sysCallErrorHandling();
 private:
 	string *pwd; // present working directory
 };

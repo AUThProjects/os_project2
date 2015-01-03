@@ -52,12 +52,14 @@ Command::~Command() {
 
 int Command::invoke()
 {
+	errno = 0;
 	if(*(this->commandName) == "cd")
 	{
 		// 0 -> when found
 		// -1 -> not found
 		cout << "inside invoke chdir" << endl;
-		return chdir(arguments->at(0).c_str());
+		chdir(arguments->at(0).c_str());
+		return errno;
 	}
 	else if(*(this->commandName) == "exit")
 	{
@@ -76,13 +78,6 @@ int Command::invoke()
 			cout << "Execution here.." << endl;
 			char** args = argsConversion();
 			int returnCode = execvp(this->commandName->c_str(), args);
-			switch(returnCode) {
-			case EACCES:
-				cerr << "Access denied to " << *commandName << endl;
-				break;
-			case ENOEXEC:
-				cerr << "Header not recognized when trying to run " << *commandName << endl;
-			}
 		}
 		else
 		{

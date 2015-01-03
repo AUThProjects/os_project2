@@ -72,3 +72,6 @@ vector<string>* CommandPrompt::tokenize(string commandString, const char* delimi
 	return toBeReturned;
 }
 
+void CommandPrompt::sysCallErrorHandling() {
+	perror("Errno");
+}
