@@ -12,8 +12,10 @@
 #include <signal.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <errno.h>
 #include <cstdlib>
 #include <string>
+#include <cstring>
 #include <iostream>
 #include <vector>
 using namespace std;
@@ -49,6 +51,7 @@ private:
 
 	bool redirectFrom;
 	string* fileToRedirectFrom;
+	char** argsConversion();
 };
 
 #endif /* COMMAND_H_ */

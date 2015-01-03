@@ -14,21 +14,16 @@ using namespace std;
 
 int main()
 {
-	CommandPrompt *cmd = new CommandPrompt();
-	for(int i=0;i<2;++i)
-	{
+	while (true) {
+		CommandPrompt *cmd = new CommandPrompt();
 		cmd->showPrompt();
 		string input;
 		cin.clear();
 		fflush(stdin);
 		getline(cin, input);
-		vector<string> myV = cmd->tokenize(input, " ");
-		for (int i=0;i<myV.size();++i) {
-			cout << myV.at(i) << endl;
-		}
-//		Command myCommand = cmd->getCommand(input);
-//		myCommand.printInfo();
-//		myCommand.invoke();
+		Command myCommand = cmd->getCommand(input);
+		myCommand.printInfo();
+		myCommand.invoke();
 	}
 }
 

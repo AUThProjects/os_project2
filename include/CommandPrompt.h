@@ -26,7 +26,7 @@ public:
 	void setPwd(string directory);
 	void showPrompt();
 	Command getCommand(string command);
-	vector<string> tokenize(string commandString, char* delimiter);
+	vector<string>* tokenize(string commandString, const char* delimiter);
 
 private:
 	string *pwd; // present working directory

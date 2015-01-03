@@ -74,6 +74,15 @@ int Command::invoke()
 		{
 			//exec the command
 			cout << "Execution here.." << endl;
+			char** args = argsConversion();
+			int returnCode = execvp(this->commandName->c_str(), args);
+			switch(returnCode) {
+			case EACCES:
+				cerr << "Access denied to " << *commandName << endl;
+				break;
+			case ENOEXEC:
+				cerr << "Header not recognized when trying to run " << *commandName << endl;
+			}
 		}
 		else
 		{
@@ -87,9 +96,20 @@ int Command::invoke()
 
 
 void Command::printInfo() {
-	cout << commandName;
+	cout << *commandName << commandName->length();
 	for (int i=0;i<arguments->size();++i) {
 		cout << " " << arguments->at(i);
 	}
 	cout << endl;
+}
+
+char** Command::argsConversion() {
+	int numberOfArgs = arguments->size();
+	char** toBeReturned = new char*[numberOfArgs+1];
+	for(int i=0;i<numberOfArgs;++i) {
+		toBeReturned[i] = new char[arguments->at(i).length()];
+		strcpy(toBeReturned[i], arguments->at(i).c_str());
+	}
+	toBeReturned[numberOfArgs] = (char *)NULL;
+	return toBeReturned;
 }
