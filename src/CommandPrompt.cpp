@@ -39,12 +39,17 @@ void CommandPrompt::showPrompt() {
 }
 
 Command CommandPrompt::getCommand(string command) {
+	cout << "-------------" << endl;
 	const char* delimiter = " ";
 	vector<string> *args = tokenize(command, delimiter);
 	bool isBackground = parseForBackgroundProcess(args);
 	string *commandName = new string(args->at(0));
-	args->erase(args->begin());
+	// args->erase(args->begin());
 	Command *myCmd = new Command(0, commandName, args, nullptr, none, nullptr, false, nullptr, isBackground);
+
+	for(int i=0;i<args->size();++i)
+		cout << i <<". "<< (*args)[i] << " ";
+	cout << endl;
 	return *myCmd;
 }
 

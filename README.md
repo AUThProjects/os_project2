@@ -21,3 +21,7 @@
     * different main
     * different process forked by the parser when a process is to be run in the background
 
+
+### to do
+
+1. Create the file the first time the application opens

@@ -20,27 +20,29 @@
 #include <errno.h>
 #include <unistd.h>
 #include <iostream>
+#include <fstream>
+#include <sstream>
+#include "Utils.h"
 
 using namespace std;
 
 class Scheduler {
 
 public:
-	Scheduler(string processesFile);
-	virtual ~Scheduler();
-	void readPids();
-	void switchExecution();
-	void deletePid(pid_t pid);
-	void invoke();
+	static void readPidsFromFile();
+	static void writePidsToFile();
+	static void invoke();
 
 
 private:
-	vector<int>* backgroundPids;
-	string processesFile;
+	Scheduler();
+	~Scheduler();
+	static vector<pid_t>* backgroundPids;
+	static int indexOfRunningProcess;
 	static void timerHandler(int signal);
-	static Scheduler instance;
-
 };
 
+vector<pid_t>* Scheduler::backgroundPids;
+int Scheduler::indexOfRunningProcess;
 
 #endif /* SCHEDULER_H_ */

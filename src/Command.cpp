@@ -98,7 +98,7 @@ int Command::invoke()
 				}
 				else {
 					fstream outputStream;
-					outputStream.open(Utils::processesFile, ios::app);
+					outputStream.open(Utils::processesFile, ios_base::out|ios_base::app);
 					if (!outputStream)
 						cerr<<"Could not open file"<<endl;
 					else
