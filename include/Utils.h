@@ -16,7 +16,6 @@ public:
 	Utils();
 	virtual ~Utils();
 	static constexpr char* processesFile = "/tmp/processesFile.txt";
-
 };
 
 #endif /* UTILS_H_ */

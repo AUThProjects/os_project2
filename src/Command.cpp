@@ -26,7 +26,8 @@ Command::Command(
 			typeOfRedirection redirectTo,
 			string* fileToRedirectTo,
 			bool redirectFrom,
-			string* fileToRedirectFrom)
+			string* fileToRedirectFrom,
+			bool inBackground)
 {
 	this->schedulerPID = schedulerPID;
 	this->commandName = commandName;
@@ -36,6 +37,7 @@ Command::Command(
 	this->fileToRedirectTo = fileToRedirectTo;
 	this->redirectFrom = redirectFrom;
 	this->fileToRedirectFrom = fileToRedirectFrom;
+	this->inBackground = inBackground;
 }
 
 
@@ -83,7 +85,28 @@ int Command::invoke()
 		{
 			int* status;
 			cerr << "Process " << id << " started." << endl;
-			return waitpid(id, status, 0);
+			if (!inBackground)
+				return waitpid(id, status, 0);
+			else {
+				// write in file
+				// sendSIgstop
+				int sigstopRes = kill(id, SIGSTOP);
+				if (sigstopRes == -1) {
+					cerr << "SIGSTOP failed" << endl;
+					char* errorInfo;
+					perror(errorInfo); // prints it out to cerr
+				}
+				else {
+					fstream outputStream;
+					outputStream.open(Utils::processesFile, ios::app);
+					if (!outputStream)
+						cerr<<"Could not open file"<<endl;
+					else
+						outputStream << id << endl;
+					outputStream.close();
+				}
+				 return id;
+			}
 		}
 	}
 	return 0;
@@ -91,7 +114,7 @@ int Command::invoke()
 
 
 void Command::printInfo() {
-	cout << *commandName << commandName->length();
+	cout << *commandName << " ";
 	for (int i=0;i<arguments->size();++i) {
 		cout << " " << arguments->at(i);
 	}

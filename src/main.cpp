@@ -20,8 +20,8 @@ int main()
 	pid_t id = fork();
 	if(id==0) {
 		//Scheduler
-		Scheduler* sch = new Scheduler(Utils::processesFile);
-		sch->invoke();
+//		Scheduler* sch = new Scheduler(Utils::processesFile);
+//		sch->invoke();
 	}
 	else
 	{

@@ -39,6 +39,7 @@ private:
 	string processesFile;
 	static void timerHandler(int signal);
 	static Scheduler instance;
+
 };
 
 

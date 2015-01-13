@@ -17,7 +17,9 @@
 #include <string>
 #include <cstring>
 #include <iostream>
+#include<fstream>
 #include <vector>
+#include "Utils.h"
 using namespace std;
 
 enum typeOfRedirection {none, replace, append};
@@ -32,7 +34,8 @@ public:
 			typeOfRedirection redirectTo,
 			string* fileToRedirectTo,
 			bool redirectFrom,
-			string* fileToRedirectFrom);
+			string* fileToRedirectFrom,
+			bool inBackground);
 			void printInfo();
 	virtual ~Command();
 
@@ -51,6 +54,8 @@ private:
 
 	bool redirectFrom;
 	string* fileToRedirectFrom;
+
+	bool inBackground;
 	char** argsConversion();
 };
 

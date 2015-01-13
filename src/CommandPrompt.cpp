@@ -41,11 +41,11 @@ void CommandPrompt::showPrompt() {
 Command CommandPrompt::getCommand(string command) {
 	const char* delimiter = " ";
 	vector<string> *args = tokenize(command, delimiter);
+	bool isBackground = parseForBackgroundProcess(args);
 	string *commandName = new string(args->at(0));
 	args->erase(args->begin());
-	Command *myCmd = new Command(0, commandName, args, nullptr, none, nullptr, false, nullptr);
+	Command *myCmd = new Command(0, commandName, args, nullptr, none, nullptr, false, nullptr, isBackground);
 	return *myCmd;
-
 }
 
 vector<string>* CommandPrompt::tokenize(string commandString, const char* delimiter) {
@@ -70,6 +70,19 @@ vector<string>* CommandPrompt::tokenize(string commandString, const char* delimi
 	}
 	toBeReturned->shrink_to_fit();
 	return toBeReturned;
+}
+
+bool CommandPrompt::parseForBackgroundProcess(vector<string>* args) {
+	string lastArgument = args->back();
+	args->pop_back();
+	if (lastArgument.back() == '&') {
+		lastArgument.pop_back();
+		if (lastArgument.size() != 0)
+			args->push_back(lastArgument);
+		return true;
+	}
+	args->push_back(lastArgument);
+	return false;
 }
 
 void CommandPrompt::sysCallErrorHandling() {

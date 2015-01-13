@@ -30,6 +30,7 @@ public:
 	static void sysCallErrorHandling();
 private:
 	string *pwd; // present working directory
+	bool parseForBackgroundProcess(vector<string>* args);
 };
 
 #endif /* INCLUDE_COMMANDPROMPT_H_ */
