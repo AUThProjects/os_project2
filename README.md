@@ -25,3 +25,4 @@
 ### to do
 
 1. Create the file the first time the application opens
+2. Change the name of the forked processes [click here](http://www.uofr.net/~greg/processname.html)
