@@ -22,7 +22,7 @@ int main()
 		//Scheduler
 		// Scheduler* sch = new Scheduler(Utils::processesFile);
 		// sch->invoke();
-		Scheduler::invoke();
+		//Scheduler::invoke();
 	}
 	else
 	{
@@ -33,11 +33,11 @@ int main()
 			cin.clear();
 			fflush(stdin);
 			getline(cin, input);
-			Command myCommand = cmd->getCommand(input);
-			myCommand.printInfo();
-			myCommand.invoke();
+			Command* myCommand = cmd->getCommand(input);
+			myCommand->printInfo();
+			//myCommand->invoke();
 			CommandPrompt::sysCallErrorHandling();
+
 		}
 	}
 }
-

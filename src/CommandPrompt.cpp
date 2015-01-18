@@ -38,19 +38,87 @@ void CommandPrompt::showPrompt() {
 	cout << username << '@' << hostname << ':' << *pwd << "$ ";
 }
 
-Command CommandPrompt::getCommand(string command) {
+Command *CommandPrompt::getCommand(string command) {
 	cout << "-------------" << endl;
 	const char* delimiter = " ";
-	vector<string> *args = tokenize(command, delimiter);
+	pid_t schedulerPID;
+	vector<string>* arguments;
+	Command* pipelineTo;
+	typeOfRedirection redirectTo;
+	string* fileToRedirectTo;
+	bool redirectFrom;
+	string* fileToRedirectFrom;
+	bool inBackground;
+	vector<string> *theTwoParts = tokenize(command, "|");
+	switch(theTwoParts->size()){
+		case 1:
+			pipelineTo = nullptr;
+			theTwoParts = tokenize(command, ">>");
+			switch(theTwoParts->size())
+			{
+				case 1:
+					redirectTo = none;
+					fileToRedirectTo=nullptr;
+					theTwoParts = tokenize(command, ">");
+					switch(theTwoParts->size())
+					{
+						case 1:
+							theTwoParts = tokenize(command, "<");
+							switch(theTwoParts->size())
+							{
+								case 1:
+									redirectFrom = false;
+									fileToRedirectFrom = nullptr;
+									break;
+								case 2:
+									redirectFrom = true;
+									fileToRedirectFrom = &(*theTwoParts)[1];
+									break;
+							}
+							break;
+						case 2:
+							redirectTo = replace;
+							fileToRedirectTo= &(*theTwoParts)[1]; //check
+							break;
+						default:
+							break;
+					}
+					break;
+				case 2:
+					cout << "String 1: " << (*theTwoParts)[0] << endl;
+					cout << "String 2: " << (*theTwoParts)[1] << endl;
+					redirectTo = append;
+					fileToRedirectTo= &(*theTwoParts)[1]; // we have to check for errors
+					break;
+				default:
+					break;
+			}
+			break;
+		case 2:
+			Command* secondCommand = getCommand((*theTwoParts)[1]);
+			Command* firstCommand = getCommand((*theTwoParts)[0]);
+			firstCommand->setPipelineTo(secondCommand);
+			return firstCommand;
+			break;
+	}
+	vector<string> *args = tokenize((*theTwoParts)[0], delimiter);
 	bool isBackground = parseForBackgroundProcess(args);
 	string *commandName = new string(args->at(0));
 	// args->erase(args->begin());
-	Command *myCmd = new Command(0, commandName, args, nullptr, none, nullptr, false, nullptr, isBackground);
+	Command *myCmd = new Command(0,
+			commandName,
+			args,
+			pipelineTo,
+			redirectTo,
+			fileToRedirectTo,
+			redirectFrom,
+			fileToRedirectFrom,
+			isBackground);
 
-	for(int i=0;i<args->size();++i)
-		cout << i <<". "<< (*args)[i] << " ";
-	cout << endl;
-	return *myCmd;
+//	for(int i=0;i<args->size();++i)
+//		cout << i <<". "<< (*args)[i] << " ";
+//	cout << endl;
+	return myCmd;
 }
 
 vector<string>* CommandPrompt::tokenize(string commandString, const char* delimiter) {
@@ -58,10 +126,10 @@ vector<string>* CommandPrompt::tokenize(string commandString, const char* delimi
 	int* delimiterPositions = new int[30];
 	delimiterPositions[0] = -1;
 	int numberOfDelimiters = 1;
-	int currentDelimiter = commandString.find_first_of(delimiter, delimiterPositions[0]+1);
+	int currentDelimiter = commandString.find(delimiter, delimiterPositions[0]+1);
 	while (currentDelimiter != string::npos) {
 		delimiterPositions[numberOfDelimiters++] = currentDelimiter;
-		currentDelimiter = commandString.find_first_of(delimiter, delimiterPositions[numberOfDelimiters-1]+1);
+		currentDelimiter = commandString.find(delimiter, delimiterPositions[numberOfDelimiters-1]);
 	}
 	delimiterPositions[numberOfDelimiters++] = stringLength;
 //	cout << "Delimiter Positions: " << endl;

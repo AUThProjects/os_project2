@@ -51,6 +51,9 @@ Command::~Command() {
 	if(fileToRedirectFrom!=nullptr)
 		delete fileToRedirectFrom;
 }
+void Command::setPipelineTo(Command* pipelineTo) {
+		this->pipelineTo = pipelineTo;
+}
 
 int Command::invoke()
 {
@@ -73,6 +76,7 @@ int Command::invoke()
 	}
 	else
 	{
+		signal(SIGCHLD, SIG_IGN);
 		pid_t id = fork();
 		if(id==0)
 		{
@@ -90,6 +94,7 @@ int Command::invoke()
 			else {
 				// write in file
 				// sendSIgstop
+				waitpid(id,status,WNOHANG);
 				int sigstopRes = kill(id, SIGSTOP);
 				if (sigstopRes == -1) {
 					cerr << "SIGSTOP failed" << endl;
@@ -117,6 +122,17 @@ void Command::printInfo() {
 	cout << *commandName << " ";
 	for (int i=0;i<arguments->size();++i) {
 		cout << " " << arguments->at(i);
+	}
+	if(redirectTo==replace)
+		cout << " replaces to: " << *fileToRedirectTo << endl;
+	if(redirectTo==append)
+			cout << " appends to: " << *fileToRedirectTo << endl;
+	if(redirectFrom)
+		cout << " redirects from: " << *fileToRedirectFrom << endl;
+	if(pipelineTo!=nullptr)
+	{
+		cout << " and pipelines with: " << endl;
+		pipelineTo->printInfo();
 	}
 	cout << endl;
 }

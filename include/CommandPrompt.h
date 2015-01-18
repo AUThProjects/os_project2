@@ -25,7 +25,7 @@ public:
 	string getPwd();
 	void setPwd(string directory);
 	void showPrompt();
-	Command getCommand(string command);
+	Command *getCommand(string command);
 	vector<string>* tokenize(string commandString, const char* delimiter);
 	static void sysCallErrorHandling();
 private:

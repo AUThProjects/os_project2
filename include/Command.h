@@ -41,6 +41,8 @@ public:
 
 	int invoke();
 
+	void setPipelineTo(Command* pipelineTo);
+
 private:
 	pid_t schedulerPID;
 

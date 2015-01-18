@@ -41,8 +41,8 @@ private:
 	static int indexOfRunningProcess;
 	static void timerHandler(int signal);
 };
-
-vector<pid_t>* Scheduler::backgroundPids;
-int Scheduler::indexOfRunningProcess;
+//
+//vector<pid_t>* Scheduler::backgroundPids;
+//int Scheduler::indexOfRunningProcess;
 
 #endif /* SCHEDULER_H_ */

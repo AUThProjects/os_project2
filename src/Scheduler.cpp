@@ -8,7 +8,11 @@
 #include "../include/Scheduler.h"
 
 
+vector<pid_t>* Scheduler::backgroundPids = new vector<pid_t>();
+int Scheduler::indexOfRunningProcess = 0;
+
 Scheduler::Scheduler() {
+
 }
 
 Scheduler::~Scheduler() {
@@ -31,12 +35,16 @@ void Scheduler::readPidsFromFile(){
 		}
 	}
 	inputStream.close();
-
+	cout << "I read these pids and the size is: " << backgroundPids->size() << endl;
+	for(int i=0;i<backgroundPids->size();++i) {
+		cout << (*backgroundPids)[i] << " ";
+	}
+	cout << endl;
 }
 
 void Scheduler::writePidsToFile(){
 	fstream outputStream;
-	outputStream.open(Utils::processesFile, ios_base::out|ios_base::app);
+	outputStream.open(Utils::processesFile, ios_base::out);
 	if (!outputStream)
 		cerr<<"Could not open file"<<endl;
 	else {
@@ -52,36 +60,42 @@ void Scheduler::timerHandler(int signal){
 	// wait pid with wnohang sto current process
 	// if finished, delete from list
 	// write list to file
-	pid_t runningProcessPid = (*backgroundPids)[indexOfRunningProcess];
+//	cout << "Scheduler timer handler caught a signal!" << endl;
 	readPidsFromFile();
+	cout << "indexOfRunningProcess: " <<indexOfRunningProcess << endl;
+	if (backgroundPids->size() == 0) { return; }
+	int indexOfProcessToRun = (indexOfRunningProcess+1)%backgroundPids->size();
+	cout << "indexOfProcessToRun: " <<indexOfProcessToRun << endl;
+	pid_t runningProcessPid = (*backgroundPids)[indexOfRunningProcess];
 	int runningProcessStatus;
 	waitpid(runningProcessPid, &runningProcessStatus, WNOHANG);
-	if WIFEXITED(runningProcessStatus) {
-		backgroundPids->erase(backgroundPids->begin()+indexOfRunningProcess); // assuming it has not changed
-		cerr << "Process " << runningProcessPid << "finished" << endl;
+	cout << "the pstatus is: " << runningProcessStatus << endl;
+	cout << "the wife is: " << WIFEXITED(runningProcessStatus) << endl;
+	if (WIFEXITED(runningProcessStatus)) { //process has exited
+		backgroundPids->erase(backgroundPids->begin() + indexOfRunningProcess); // assuming it has not changed
+		cerr << "Process " << runningProcessPid << " finished" << endl;
 		writePidsToFile();
+		indexOfProcessToRun = indexOfRunningProcess;
 	}
 	else {
 		kill((*backgroundPids)[indexOfRunningProcess], SIGSTOP);
-		indexOfRunningProcess = ++indexOfRunningProcess%backgroundPids->size();
 	}
-	kill((*backgroundPids)[indexOfRunningProcess], SIGCONT);
-	cerr << "Changing to pid " << (*backgroundPids)[indexOfRunningProcess] << endl;
+	kill((*backgroundPids)[indexOfProcessToRun], SIGCONT);
+	cerr << "Changing to pid " << (*backgroundPids)[indexOfProcessToRun] << endl;
+	indexOfRunningProcess = indexOfProcessToRun;
+	// the process has been removed from the file, that's why we don't increment.
 	// cout << "hello" << endl;
 }
 
 // initial call of the scheduler
 void Scheduler::invoke(){
 	 //Setup timer
-	backgroundPids = new vector<pid_t>();
-	indexOfRunningProcess = -1;
 	struct itimerval timer={0};
 	timer.it_value.tv_sec = 1;
-	timer.it_interval.tv_sec = 1;
+	timer.it_interval.tv_sec = 5;
 	setitimer(ITIMER_REAL, &timer, NULL);
 	//Setup signal handler
 	signal(SIGALRM, &timerHandler);
-	int sleepLeft=sleep(10);
-	while(sleepLeft) sleepLeft=sleep(sleepLeft);
+	while(true) {}
 	//return 0;
 }
