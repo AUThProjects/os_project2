@@ -43,7 +43,12 @@ public:
 
 	int invoke();
 
+	void setCommandName(string* commandName);
+	void setArguments(vector<string>* arguments);
 	void setPipelineTo(Command* pipelineTo);
+	void setRedirectTo(string* fileToRedirectTo, typeOfRedirection tor);
+	void setRedirectFrom(string* fileToRedirectFrom);
+	void setInBackground(bool inBackground);
 
 private:
 	pid_t schedulerPID;

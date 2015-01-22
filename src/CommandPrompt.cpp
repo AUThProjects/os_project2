@@ -42,100 +42,59 @@ Command *CommandPrompt::getCommand(string command) {
 	cout << "-------------" << endl;
 	const char* delimiter = " ";
 	pid_t schedulerPID;
-	vector<string>* arguments;
-	Command* pipelineTo;
-	typeOfRedirection redirectTo = none;
-	string* fileToRedirectTo;
-	bool redirectFrom = false;
-	string* fileToRedirectFrom;
-	bool inBackground;
-	vector<string> *theTwoParts = tokenize(command, "|");
-	vector<string>* temp;
-	switch(theTwoParts->size()){
-		case 1:
-			pipelineTo = nullptr;
-			theTwoParts = tokenize(command, ">>");
-			switch(theTwoParts->size())
-			{
-				case 1:
-					redirectTo = none;
-					fileToRedirectTo=nullptr;
-					theTwoParts = tokenize(command, ">");
-					switch(theTwoParts->size())
-					{
-						case 1:
-							theTwoParts = tokenize(command, "<");
-							cout << theTwoParts->size();
-							switch(theTwoParts->size())
-							{
-								case 1:
-									redirectFrom = false;
-									fileToRedirectFrom = nullptr;
-									break;
-								case 2:
-									redirectFrom = true;
-									temp = tokenize(theTwoParts->at(1), " ");
-									(*theTwoParts)[1] = temp->at(0);
-									fileToRedirectFrom = &(*theTwoParts)[1];
-									break;
-							}
-							break;
-						case 2:
-							redirectTo = replace;
-							temp = tokenize(theTwoParts->at(1), " ");
-							(*theTwoParts)[1] = temp->at(0);
-							fileToRedirectTo= &(*theTwoParts)[1]; //check
-							break;
-						default:
-							break;
-					}
-					break;
-				case 2:
-					cout << "String 1: " << (*theTwoParts)[0] << endl;
-					cout << "String 2: " << (*theTwoParts)[1] << endl;
-					redirectTo = append;
-					temp = tokenize(theTwoParts->at(1), " ");
-					(*theTwoParts)[1] = temp->at(0);
-					fileToRedirectTo= &(*theTwoParts)[1]; // we have to check for errors
-					break;
-				default:
-					break;
-			}
-			break;
-		case 2:
-			Command* secondCommand = getCommand((*theTwoParts)[1]);
-			Command* firstCommand = getCommand((*theTwoParts)[0]);
-			firstCommand->setPipelineTo(secondCommand);
-			return firstCommand;
-			break;
-	}
-	cout << "After switch of redirection" << endl;
-	cout << "theTwoParts[0]" << (*theTwoParts)[0] << "$"<< endl;
+//	vector<string>* arguments;
+//	Command* pipelineTo;
+//	typeOfRedirection redirectTo = none;
+//	string* fileToRedirectTo;
+//	bool redirectFrom = false;
+//	string* fileToRedirectFrom;
+//	bool inBackground;
+	Command* theCommand = new Command();
+	vector<string> *theTwoParts;
+	theTwoParts = parseForOperator(pipel, command, theCommand);
+	theTwoParts = parseForOperator(to_app, theTwoParts->at(0), theCommand);
+	if(theTwoParts->size() == 1)
+		theTwoParts = parseForOperator(to, theTwoParts->at(0), theCommand);
+	theTwoParts = parseForOperator(from, theTwoParts->at(0) , theCommand);
+
+
+
+
+
+
+
+//	cout << "After switch of redirection" << endl;
+//	cout << "theTwoParts[0]" << (*theTwoParts)[0] << "$"<< endl;
 	vector<string> *args = tokenize((*theTwoParts)[0], delimiter);
 
-	cout << "After tokenize" << endl;
+//	cout << "After tokenize" << endl;
 	bool isBackground = parseForBackgroundProcess(args);
 	cout << "After parseForBGProcess" << endl;
 	string *commandName = new string(args->at(0));
+	theCommand->setCommandName(commandName);
+	theCommand->setArguments(args);
+	theCommand->setInBackground(isBackground);
 	// args->erase(args->begin());
-	Command *myCmd = new Command(0,
-			commandName,
-			args,
-			pipelineTo,
-			redirectTo,
-			fileToRedirectTo,
-			redirectFrom,
-			fileToRedirectFrom,
-			isBackground);
+//	Command *myCmd = new Command(0,
+//			commandName,
+//			args,
+//			pipelineTo,
+//			redirectTo,
+//			fileToRedirectTo,
+//			redirectFrom,
+//			fileToRedirectFrom,
+//			isBackground);
 //	myCmd->printInfo();
 //	for(int i=0;i<args->size();++i)
 //		cout << i <<". "<< (*args)[i] << " ";
 //	cout << endl;
-	return myCmd;
+//	return myCmd;
+	theCommand->printInfo();
+	return theCommand;
 }
 
 vector<string>* CommandPrompt::tokenize(string commandString, const char* delimiter) {
-	cout << "Inside tokenize with delimiter: " << delimiter << "and commandString" << commandString << endl;
+//	cout << "Inside tokenize with delimiter: " << delimiter << "and commandString" << commandString << endl;
 
 	int stringLength = commandString.length();
 	int delimiterLength = strlen(delimiter);
@@ -148,12 +107,10 @@ vector<string>* CommandPrompt::tokenize(string commandString, const char* delimi
 		currentDelimiter = commandString.find(delimiter, delimiterPositions[numberOfDelimiters-1] + delimiterLength);
 	}
 	delimiterPositions[numberOfDelimiters++] = stringLength;
-	cout << "Delimiter Positions: " << endl;
-	for(int i=0;i<numberOfDelimiters;++i) {
-			cout << delimiterPositions[i] << " ";
-		}
-
-
+//	cout << "Delimiter Positions: " << endl;
+//	for(int i=0;i<numberOfDelimiters;++i) {
+//			cout << delimiterPositions[i] << " ";
+//		}
 
 	vector<string> *toBeReturned = new vector<string>();
 	for(int i=0;i<numberOfDelimiters-1;++i) {
@@ -161,10 +118,10 @@ vector<string>* CommandPrompt::tokenize(string commandString, const char* delimi
 		toBeReturned->push_back(commandString.substr(delimiterPositions[i]+delimiterLength, delimiterPositions[i+1]-(delimiterPositions[i]+delimiterLength)));
 	}
 	toBeReturned->shrink_to_fit();
-	cout << "tokenize() successful" << endl;
-	for (int i=0;i<toBeReturned->size();++i) {
-		cout << toBeReturned->at(i) << " ";
-	}
+//	cout << "tokenize() successful" << endl;
+//	for (int i=0;i<toBeReturned->size();++i) {
+//		cout << toBeReturned->at(i) << " ";
+//	}
 	return toBeReturned;
 }
 
@@ -183,4 +140,46 @@ bool CommandPrompt::parseForBackgroundProcess(vector<string>* args) {
 
 void CommandPrompt::sysCallErrorHandling() {
 	perror("Errno");
+}
+
+// returns the parsed elements of the whole stringToParse
+vector<string>* CommandPrompt::parseForOperator(TypeOfOperator too, string stringToParse, Command* command) {
+	vector<string>* theTwoStrings;
+	// the cases where theTwoStrings consist of 1 element are not handled due to default values in the ctor
+	switch(too) {
+	case from:
+		theTwoStrings = tokenize(stringToParse, "<");
+		if (theTwoStrings->size() == 2) {
+			vector<string>* tokens = tokenize(theTwoStrings->at(1), " ");
+			(*theTwoStrings)[1] = tokens->at(0);
+			command->setRedirectFrom(&theTwoStrings->at(1));
+		}
+		return theTwoStrings;
+		break;
+	case to:
+		theTwoStrings = tokenize(stringToParse, ">");
+		if (theTwoStrings->size() == 2) {
+			vector<string>* tokens = tokenize(theTwoStrings->at(1), " ");
+			(*theTwoStrings)[1] = tokens->at(0);
+			command->setRedirectTo(&theTwoStrings->at(1), replace);
+		}
+		return theTwoStrings;
+		break;
+	case to_app:
+		theTwoStrings = tokenize(stringToParse, ">>");
+		if (theTwoStrings->size() == 2) {
+			vector<string>* tokens = tokenize(theTwoStrings->at(1), " ");
+			(*theTwoStrings)[1] = tokens->at(0);
+			command->setRedirectTo(&theTwoStrings->at(1), append);
+		}
+		return theTwoStrings;
+		break;
+	case pipel:
+		theTwoStrings = tokenize(stringToParse, "|");
+		if (theTwoStrings->size() == 2) {
+			command->setPipelineTo(getCommand(theTwoStrings->at(1)));
+		}
+		return theTwoStrings;
+		break;
+	}
 }

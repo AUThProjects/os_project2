@@ -51,9 +51,6 @@ Command::~Command() {
 	if(fileToRedirectFrom!=nullptr)
 		delete fileToRedirectFrom;
 }
-void Command::setPipelineTo(Command* pipelineTo) {
-		this->pipelineTo = pipelineTo;
-}
 
 int Command::invoke()
 {
@@ -76,7 +73,7 @@ int Command::invoke()
 	}
 	else
 	{
-		int fd;
+		int fd, fd2;
 		switch(redirectTo) {
 			case none:
 				break;
@@ -96,8 +93,8 @@ int Command::invoke()
 			}
 		}
 		if (redirectFrom) {
-			fd = open(this->fileToRedirectFrom->c_str(), O_RDONLY );
-			if (fd < 0) {return -1;}
+			fd2 = open(this->fileToRedirectFrom->c_str(), O_RDONLY );
+			if (fd2 < 0) {return -1;}
 		}
 		if (pipelineTo) {
 
@@ -128,7 +125,7 @@ int Command::invoke()
 				}
 			}
 			if (redirectFrom) {
-				if (dup2(fd,0) < 0) {return -1;}
+				if (dup2(fd2,0) < 0) {return -1;}
 			}
 			if (pipelineTo) {
 
@@ -198,4 +195,31 @@ char** Command::argsConversion() {
 	}
 	toBeReturned[numberOfArgs] = (char *)NULL;
 	return toBeReturned;
+}
+
+
+// Accessors
+void Command::setPipelineTo(Command* pipelineTo) {
+	this->pipelineTo = pipelineTo;
+}
+void Command::setCommandName(string* commandName) {
+	this->commandName = commandName;
+}
+void Command::setArguments(vector<string>* arguments) {
+	this->arguments = arguments;
+}
+
+
+void Command::setRedirectTo(string* fileToRedirectTo, typeOfRedirection tor) {
+	this->fileToRedirectTo = fileToRedirectTo;
+	this->redirectTo = tor;
+}
+
+void Command::setRedirectFrom(string* fileToRedirectFrom) {
+	this->redirectFrom = true;
+	this->fileToRedirectFrom = fileToRedirectFrom;
+}
+
+void Command::setInBackground(bool inBackground) {
+	this->inBackground = inBackground;
 }

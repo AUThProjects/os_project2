@@ -17,6 +17,7 @@
 
 using namespace std;
 
+enum TypeOfOperator {from, to, to_app, pipel};
 class CommandPrompt {
 public:
 	CommandPrompt();
@@ -31,6 +32,7 @@ public:
 private:
 	string *pwd; // present working directory
 	bool parseForBackgroundProcess(vector<string>* args);
+	vector<string>* parseForOperator(TypeOfOperator too, string stringToParse, Command* command);
 };
 
 #endif /* INCLUDE_COMMANDPROMPT_H_ */
