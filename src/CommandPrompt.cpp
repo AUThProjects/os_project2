@@ -44,12 +44,13 @@ Command *CommandPrompt::getCommand(string command) {
 	pid_t schedulerPID;
 	vector<string>* arguments;
 	Command* pipelineTo;
-	typeOfRedirection redirectTo;
+	typeOfRedirection redirectTo = none;
 	string* fileToRedirectTo;
-	bool redirectFrom;
+	bool redirectFrom = false;
 	string* fileToRedirectFrom;
 	bool inBackground;
 	vector<string> *theTwoParts = tokenize(command, "|");
+	vector<string>* temp;
 	switch(theTwoParts->size()){
 		case 1:
 			pipelineTo = nullptr;
@@ -64,6 +65,7 @@ Command *CommandPrompt::getCommand(string command) {
 					{
 						case 1:
 							theTwoParts = tokenize(command, "<");
+							cout << theTwoParts->size();
 							switch(theTwoParts->size())
 							{
 								case 1:
@@ -72,12 +74,16 @@ Command *CommandPrompt::getCommand(string command) {
 									break;
 								case 2:
 									redirectFrom = true;
+									temp = tokenize(theTwoParts->at(1), " ");
+									(*theTwoParts)[1] = temp->at(0);
 									fileToRedirectFrom = &(*theTwoParts)[1];
 									break;
 							}
 							break;
 						case 2:
 							redirectTo = replace;
+							temp = tokenize(theTwoParts->at(1), " ");
+							(*theTwoParts)[1] = temp->at(0);
 							fileToRedirectTo= &(*theTwoParts)[1]; //check
 							break;
 						default:
@@ -88,6 +94,8 @@ Command *CommandPrompt::getCommand(string command) {
 					cout << "String 1: " << (*theTwoParts)[0] << endl;
 					cout << "String 2: " << (*theTwoParts)[1] << endl;
 					redirectTo = append;
+					temp = tokenize(theTwoParts->at(1), " ");
+					(*theTwoParts)[1] = temp->at(0);
 					fileToRedirectTo= &(*theTwoParts)[1]; // we have to check for errors
 					break;
 				default:
@@ -101,8 +109,13 @@ Command *CommandPrompt::getCommand(string command) {
 			return firstCommand;
 			break;
 	}
+	cout << "After switch of redirection" << endl;
+	cout << "theTwoParts[0]" << (*theTwoParts)[0] << "$"<< endl;
 	vector<string> *args = tokenize((*theTwoParts)[0], delimiter);
+
+	cout << "After tokenize" << endl;
 	bool isBackground = parseForBackgroundProcess(args);
+	cout << "After parseForBGProcess" << endl;
 	string *commandName = new string(args->at(0));
 	// args->erase(args->begin());
 	Command *myCmd = new Command(0,
@@ -114,7 +127,7 @@ Command *CommandPrompt::getCommand(string command) {
 			redirectFrom,
 			fileToRedirectFrom,
 			isBackground);
-
+//	myCmd->printInfo();
 //	for(int i=0;i<args->size();++i)
 //		cout << i <<". "<< (*args)[i] << " ";
 //	cout << endl;
@@ -122,26 +135,36 @@ Command *CommandPrompt::getCommand(string command) {
 }
 
 vector<string>* CommandPrompt::tokenize(string commandString, const char* delimiter) {
+	cout << "Inside tokenize with delimiter: " << delimiter << "and commandString" << commandString << endl;
+
 	int stringLength = commandString.length();
-	int* delimiterPositions = new int[30];
-	delimiterPositions[0] = -1;
-	int numberOfDelimiters = 1;
-	int currentDelimiter = commandString.find(delimiter, delimiterPositions[0]+1);
+	int delimiterLength = strlen(delimiter);
+	int* delimiterPositions = new int[30]; // keeps track of the first (potentially) delimiter char
+	delimiterPositions[0] = -delimiterLength;
+	int numberOfDelimiters = 1; // size of delimiterPositions
+	int currentDelimiter = commandString.find(delimiter, delimiterPositions[0]+ delimiterLength); // +delimiterLength
 	while (currentDelimiter != string::npos) {
 		delimiterPositions[numberOfDelimiters++] = currentDelimiter;
-		currentDelimiter = commandString.find(delimiter, delimiterPositions[numberOfDelimiters-1]);
+		currentDelimiter = commandString.find(delimiter, delimiterPositions[numberOfDelimiters-1] + delimiterLength);
 	}
 	delimiterPositions[numberOfDelimiters++] = stringLength;
-//	cout << "Delimiter Positions: " << endl;
-//	for(int i=0;i<numberOfDelimiters;++i) {
-//			cout << delimiterPositions[i] << " ";
-//		}
+	cout << "Delimiter Positions: " << endl;
+	for(int i=0;i<numberOfDelimiters;++i) {
+			cout << delimiterPositions[i] << " ";
+		}
+
+
+
 	vector<string> *toBeReturned = new vector<string>();
 	for(int i=0;i<numberOfDelimiters-1;++i) {
-		if (delimiterPositions[i]+1 == delimiterPositions[i+1]) continue;
-		toBeReturned->push_back(commandString.substr(delimiterPositions[i]+1, delimiterPositions[i+1]-delimiterPositions[i]-1));
+		if (delimiterPositions[i]+delimiterLength == delimiterPositions[i+1]) {continue;};
+		toBeReturned->push_back(commandString.substr(delimiterPositions[i]+delimiterLength, delimiterPositions[i+1]-(delimiterPositions[i]+delimiterLength)));
 	}
 	toBeReturned->shrink_to_fit();
+	cout << "tokenize() successful" << endl;
+	for (int i=0;i<toBeReturned->size();++i) {
+		cout << toBeReturned->at(i) << " ";
+	}
 	return toBeReturned;
 }
 

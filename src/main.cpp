@@ -35,8 +35,8 @@ int main()
 			getline(cin, input);
 			Command* myCommand = cmd->getCommand(input);
 			myCommand->printInfo();
-			//myCommand->invoke();
-			CommandPrompt::sysCallErrorHandling();
+			myCommand->invoke();
+//			CommandPrompt::sysCallErrorHandling();
 
 		}
 	}

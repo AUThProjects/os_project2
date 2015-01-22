@@ -19,6 +19,8 @@
 #include <iostream>
 #include<fstream>
 #include <vector>
+#include <unistd.h>
+#include <fcntl.h>
 #include "Utils.h"
 using namespace std;
 
@@ -58,6 +60,7 @@ private:
 	string* fileToRedirectFrom;
 
 	bool inBackground;
+	int fd; // file descriptor for redirection
 	char** argsConversion();
 };
 

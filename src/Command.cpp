@@ -76,12 +76,64 @@ int Command::invoke()
 	}
 	else
 	{
+		int fd;
+		switch(redirectTo) {
+			case none:
+				break;
+			case replace:
+			{
+				fd = open(this->fileToRedirectTo->c_str(), O_WRONLY | O_CREAT | O_TRUNC , S_IRUSR | S_IWUSR |
+						S_IRGRP | S_IWGRP | S_IROTH);
+				if (fd < 0) {return -1;}
+				break;
+			}
+			case append:
+			{
+				fd = open(this->fileToRedirectTo->c_str(), O_WRONLY | O_APPEND | O_CREAT, S_IRUSR | S_IWUSR |
+						S_IRGRP | S_IWGRP | S_IROTH);
+				if (fd < 0) {return -1;}
+				break;
+			}
+		}
+		if (redirectFrom) {
+			fd = open(this->fileToRedirectFrom->c_str(), O_RDONLY );
+			if (fd < 0) {return -1;}
+		}
+		if (pipelineTo) {
+
+		}
+
+
+
+
+
 		signal(SIGCHLD, SIG_IGN);
 		pid_t id = fork();
 		if(id==0)
 		{
 			//exec the command
 			cout << "Execution here.." << endl;
+			switch(redirectTo) {
+				case none:
+					break;
+				case replace:
+				{
+					if (dup2(fd,1) < 0) {return -1;}
+					break;
+				}
+				case append:
+				{
+					if (dup2(fd,1) < 0) {return -1;}
+					break;
+				}
+			}
+			if (redirectFrom) {
+				if (dup2(fd,0) < 0) {return -1;}
+			}
+			if (pipelineTo) {
+
+			}
+
 			char** args = argsConversion();
 			int returnCode = execvp(this->commandName->c_str(), args);
 		}
