@@ -17,7 +17,7 @@
 #include <string>
 #include <cstring>
 #include <iostream>
-#include<fstream>
+#include <fstream>
 #include <vector>
 #include <unistd.h>
 #include <fcntl.h>
@@ -49,7 +49,9 @@ public:
 	void setRedirectTo(string* fileToRedirectTo, typeOfRedirection tor);
 	void setRedirectFrom(string* fileToRedirectFrom);
 	void setInBackground(bool inBackground);
-
+	static Command* readFromString(string s);
+	bool isBackground();
+	string* toString();
 private:
 	pid_t schedulerPID;
 
@@ -67,6 +69,7 @@ private:
 	bool inBackground;
 	int fd; // file descriptor for redirection
 	char** argsConversion();
+
 };
 
 #endif /* COMMAND_H_ */

@@ -57,17 +57,11 @@ Command *CommandPrompt::getCommand(string command) {
 		theTwoParts = parseForOperator(to, theTwoParts->at(0), theCommand);
 	theTwoParts = parseForOperator(from, theTwoParts->at(0) , theCommand);
 
-
-
-
-
-
-
 //	cout << "After switch of redirection" << endl;
 //	cout << "theTwoParts[0]" << (*theTwoParts)[0] << "$"<< endl;
-	vector<string> *args = tokenize((*theTwoParts)[0], delimiter);
-
-//	cout << "After tokenize" << endl;
+	vector<string> *args = Utils::tokenize((*theTwoParts)[0], delimiter);
+	cout << "printing args tokenized:" << endl;
+//	cout << "After Utils::tokenize" << endl;
 	bool isBackground = parseForBackgroundProcess(args);
 	cout << "After parseForBGProcess" << endl;
 	string *commandName = new string(args->at(0));
@@ -89,41 +83,11 @@ Command *CommandPrompt::getCommand(string command) {
 //		cout << i <<". "<< (*args)[i] << " ";
 //	cout << endl;
 //	return myCmd;
-	theCommand->printInfo();
+//	theCommand->printInfo();
 	return theCommand;
 }
 
-vector<string>* CommandPrompt::tokenize(string commandString, const char* delimiter) {
-//	cout << "Inside tokenize with delimiter: " << delimiter << "and commandString" << commandString << endl;
 
-	int stringLength = commandString.length();
-	int delimiterLength = strlen(delimiter);
-	int* delimiterPositions = new int[30]; // keeps track of the first (potentially) delimiter char
-	delimiterPositions[0] = -delimiterLength;
-	int numberOfDelimiters = 1; // size of delimiterPositions
-	int currentDelimiter = commandString.find(delimiter, delimiterPositions[0]+ delimiterLength); // +delimiterLength
-	while (currentDelimiter != string::npos) {
-		delimiterPositions[numberOfDelimiters++] = currentDelimiter;
-		currentDelimiter = commandString.find(delimiter, delimiterPositions[numberOfDelimiters-1] + delimiterLength);
-	}
-	delimiterPositions[numberOfDelimiters++] = stringLength;
-//	cout << "Delimiter Positions: " << endl;
-//	for(int i=0;i<numberOfDelimiters;++i) {
-//			cout << delimiterPositions[i] << " ";
-//		}
-
-	vector<string> *toBeReturned = new vector<string>();
-	for(int i=0;i<numberOfDelimiters-1;++i) {
-		if (delimiterPositions[i]+delimiterLength == delimiterPositions[i+1]) {continue;};
-		toBeReturned->push_back(commandString.substr(delimiterPositions[i]+delimiterLength, delimiterPositions[i+1]-(delimiterPositions[i]+delimiterLength)));
-	}
-	toBeReturned->shrink_to_fit();
-//	cout << "tokenize() successful" << endl;
-//	for (int i=0;i<toBeReturned->size();++i) {
-//		cout << toBeReturned->at(i) << " ";
-//	}
-	return toBeReturned;
-}
 
 bool CommandPrompt::parseForBackgroundProcess(vector<string>* args) {
 	string lastArgument = args->back();
@@ -148,34 +112,34 @@ vector<string>* CommandPrompt::parseForOperator(TypeOfOperator too, string strin
 	// the cases where theTwoStrings consist of 1 element are not handled due to default values in the ctor
 	switch(too) {
 	case from:
-		theTwoStrings = tokenize(stringToParse, "<");
+		theTwoStrings = Utils::tokenize(stringToParse, "<");
 		if (theTwoStrings->size() == 2) {
-			vector<string>* tokens = tokenize(theTwoStrings->at(1), " ");
+			vector<string>* tokens = Utils::tokenize(theTwoStrings->at(1), " ");
 			(*theTwoStrings)[1] = tokens->at(0);
 			command->setRedirectFrom(&theTwoStrings->at(1));
 		}
 		return theTwoStrings;
 		break;
 	case to:
-		theTwoStrings = tokenize(stringToParse, ">");
+		theTwoStrings = Utils::tokenize(stringToParse, ">");
 		if (theTwoStrings->size() == 2) {
-			vector<string>* tokens = tokenize(theTwoStrings->at(1), " ");
+			vector<string>* tokens = Utils::tokenize(theTwoStrings->at(1), " ");
 			(*theTwoStrings)[1] = tokens->at(0);
 			command->setRedirectTo(&theTwoStrings->at(1), replace);
 		}
 		return theTwoStrings;
 		break;
 	case to_app:
-		theTwoStrings = tokenize(stringToParse, ">>");
+		theTwoStrings = Utils::tokenize(stringToParse, ">>");
 		if (theTwoStrings->size() == 2) {
-			vector<string>* tokens = tokenize(theTwoStrings->at(1), " ");
+			vector<string>* tokens = Utils::tokenize(theTwoStrings->at(1), " ");
 			(*theTwoStrings)[1] = tokens->at(0);
 			command->setRedirectTo(&theTwoStrings->at(1), append);
 		}
 		return theTwoStrings;
 		break;
 	case pipel:
-		theTwoStrings = tokenize(stringToParse, "|");
+		theTwoStrings = Utils::tokenize(stringToParse, "|");
 		if (theTwoStrings->size() == 2) {
 			command->setPipelineTo(getCommand(theTwoStrings->at(1)));
 		}

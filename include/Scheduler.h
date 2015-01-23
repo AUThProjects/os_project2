@@ -23,6 +23,10 @@
 #include <fstream>
 #include <sstream>
 #include "Utils.h"
+#include "Command.h"
+
+#define BG_BUFFER_SIZE 2
+#define BUFFER_SIZE 512
 
 using namespace std;
 
@@ -31,12 +35,15 @@ class Scheduler {
 public:
 	static void readPidsFromFile();
 	static void writePidsToFile();
-	static void invoke();
+	static void submitCommandsFromPipe();
+	static void invoke(int *pipefd);
+	static int *pipefds;
 
 
 private:
 	Scheduler();
 	~Scheduler();
+
 	static vector<pid_t>* backgroundPids;
 	static int indexOfRunningProcess;
 	static void timerHandler(int signal);

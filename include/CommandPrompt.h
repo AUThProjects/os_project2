@@ -14,6 +14,7 @@
 #include <iostream>
 #include <vector>
 #include "Command.h"
+#include "Utils.h"
 
 using namespace std;
 
@@ -27,7 +28,6 @@ public:
 	void setPwd(string directory);
 	void showPrompt();
 	Command *getCommand(string command);
-	vector<string>* tokenize(string commandString, const char* delimiter);
 	static void sysCallErrorHandling();
 private:
 	string *pwd; // present working directory
