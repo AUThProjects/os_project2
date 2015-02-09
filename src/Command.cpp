@@ -7,8 +7,8 @@
 
 #include "../include/Command.h"
 
+// Default ctor
 Command::Command() {
-	this->schedulerPID = 0;
 	this->commandName = new string();
 	this->arguments = new vector<string>();
 	this->pipelineTo = nullptr;
@@ -18,6 +18,7 @@ Command::Command() {
 	this->fileToRedirectFrom = nullptr;
 }
 
+// Overloaded ctor
 Command::Command(
 			pid_t schedulerPID,
 			string* commandName,
@@ -29,7 +30,6 @@ Command::Command(
 			string* fileToRedirectFrom,
 			bool inBackground)
 {
-	this->schedulerPID = schedulerPID;
 	this->commandName = commandName;
 	this->arguments = arguments;
 	this->pipelineTo = pipelineTo;
@@ -57,119 +57,112 @@ Command::~Command() {
 int Command::invoke()
 {
 	errno = 0;
-	if(*(this->commandName) == "cd")
-	{
-		// 0 -> when found
-		// -1 -> not found
-		cout << "inside invoke chdir" << endl;
-		chdir(arguments->at(0).c_str());
-//		return errno;
-		return 0;
-	}
-	else if(*(this->commandName) == "exit")
-	{
-		// Scheduler will handle SIGINT signal
-		// and will kill all child processes
-		// and exit.
-		int exitCode = kill(schedulerPID, SIGINT);
-		exit(exitCode);
-	}
-	else // execvp commands
-	{
-		int fd, fd2;
-		switch(redirectTo) {
-			case none:
-				break;
-			case replace:
-			{
-				fd = open(this->fileToRedirectTo->c_str(), O_WRONLY | O_CREAT | O_TRUNC , S_IRUSR | S_IWUSR |
-						S_IRGRP | S_IWGRP | S_IROTH);
-				if (fd < 0) {return -1;}
-				break;
-			}
-			case append:
-			{
-				fd = open(this->fileToRedirectTo->c_str(), O_WRONLY | O_APPEND | O_CREAT, S_IRUSR | S_IWUSR |
-						S_IRGRP | S_IWGRP | S_IROTH);
-				if (fd < 0) {return -1;}
-				break;
-			}
-		}
-		if (redirectFrom) {
-			fd2 = open(this->fileToRedirectFrom->c_str(), O_RDONLY );
-			if (fd2 < 0) {return -1;}
-		}
-		signal(SIGCHLD, SIG_IGN);
-		pid_t id = fork();
-		if (id <= -1)
-			return -1;
-		else if(id==0) //fork before pipeline
+		pid_t pidOfProcessAfterPipelineOperator;
+		if(*(this->commandName) == "cd")
 		{
-			//exec the command
-			cout << "Execution here.." << endl;
+			// 0 -> when found
+			// -1 -> not found
+			cout << "inside invoke chdir" << endl;
+			chdir(arguments->at(0).c_str());
+			return 0;
+		}
+		else if(*(this->commandName) == "exit")
+		{
+			// Scheduler will handle SIGINT signal
+			// and will kill all child processes
+			// and exit.
+			exit(0);
+		}
+		else // execvp commands
+		{
+			int fd, fd2;
 			switch(redirectTo) {
 				case none:
 					break;
 				case replace:
 				{
-					if (dup2(fd,1) < 0) {return -1;}
+					fd = open(this->fileToRedirectTo->c_str(), O_WRONLY | O_CREAT | O_TRUNC , S_IRUSR | S_IWUSR |
+							S_IRGRP | S_IWGRP | S_IROTH);
+					if (fd < 0) {return -1;}
 					break;
 				}
 				case append:
 				{
-					if (dup2(fd,1) < 0) {return -1;}
+					fd = open(this->fileToRedirectTo->c_str(), O_WRONLY | O_APPEND | O_CREAT, S_IRUSR | S_IWUSR |
+							S_IRGRP | S_IWGRP | S_IROTH);
+					if (fd < 0) {return -1;}
 					break;
 				}
 			}
-
 			if (redirectFrom) {
-				if (dup2(fd2,0) < 0) {return -1;}
+				fd2 = open(this->fileToRedirectFrom->c_str(), O_RDONLY );
+				if (fd2 < 0) {return -1;}
 			}
-			int pipefd[2];
-			if (pipelineTo) {
-				if (pipe(pipefd)<0)
-					return -2;
-				pid_t pipeSenderPid = fork();
-				if (pipeSenderPid < 0)
-					return -1;
-				else if (pipeSenderPid == 0) { //child
-					close(pipefd[0]); // closes stdin pipelining
-					if (dup2(pipefd[1], 1) < 0) {return -1;}
+			signal(SIGCHLD, SIG_IGN);
+			pid_t id = fork();
+			if (id <= -1)
+				return -1;
+			else if(id==0) //fork before pipeline
+			{
+				//exec the command
+				switch(redirectTo) {
+					case none:
+						break;
+					case replace:
+					{
+						if (dup2(fd,1) < 0) {return -1;}
+						break;
+					}
+					case append:
+					{
+						if (dup2(fd,1) < 0) {return -1;}
+						break;
+					}
+				}
+
+				if (redirectFrom) {
+					if (dup2(fd2,0) < 0) {return -1;}
+				}
+				int pipefd[2];
+				if (pipelineTo) {
+					if (pipe(pipefd)<0)
+						return -2;
+					pid_t pipeSenderPid = fork();
+					if (pipeSenderPid < 0)
+						return -1;
+					else if (pipeSenderPid == 0) { //child
+						close(pipefd[0]); // closes stdin pipelining
+						if (dup2(pipefd[1], 1) < 0) {return -1;}
+						char** args = argsConversion();
+						int returnCode = execvp(this->commandName->c_str(), args); // execute the first part of the pipeline
+					}
+					else { // parent
+						close(pipefd[1]); //closes its write end
+						dup2(pipefd[0], 0);
+					}
+					close(pipefd[0]);
+					close(pipefd[1]);
+					int status;
+					wait(&status);
+					pidOfProcessAfterPipelineOperator = this->pipelineTo->invoke(); // command after pipeline
+				}
+				int returnCode;
+				if (pipelineTo == nullptr) {
 					char** args = argsConversion();
-					int returnCode = execvp(this->commandName->c_str(), args); // execute the first part of the pipeline
+					returnCode = execvp(this->commandName->c_str(), args); // execute the second part of the pipeline // basic execution of simple command
 				}
-				else { // parent
-					close(pipefd[1]); //closes its write end
-					dup2(pipefd[0], 0);
-				}
-				close(pipefd[0]);
-				close(pipefd[1]);
-				int status;
-				wait(&status);
-				this->pipelineTo->invoke(); // command after pipeline
-//				char** args = this->pipelineTo->argsConversion();
-//				int returnCode = execvp(this->pipelineTo->commandName->c_str(), args);
 			}
-			cout << "From command: " << *commandName << endl;
-			cout << "is this executed in pipeline?" << endl;
-			int returnCode;
-			if (pipelineTo == nullptr) {
-				char** args = argsConversion();
-				returnCode = execvp(this->commandName->c_str(), args); // execute the second part of the pipeline
-			}
-		}
-		else
-		{
-			int* status;
-			cerr << "Process " << id << " started." << endl;
-			if (!inBackground)
-				return waitpid(id, status, 0);
-			else {
+			else
+			{
+				int* status;
+				if (!inBackground)
+					waitpid(id, status, 0);
+				if (this->pipelineTo != nullptr)
+					return pidOfProcessAfterPipelineOperator;
 				return id;
 			}
 		}
-	}
-	return 0;
+		return 0;
 }
 
 
@@ -261,7 +254,7 @@ string* Command::toString(){
 }
 
 char** Command::argsConversion() {
-	cout << "inside argsConversion" << endl;
+//	cout << "inside argsConversion" << endl;
 	int numberOfArgs = arguments->size();
 	char** toBeReturned = new char*[numberOfArgs+1];
 	for(int i=0;i<numberOfArgs;++i) {
@@ -269,7 +262,7 @@ char** Command::argsConversion() {
 		strcpy(toBeReturned[i], arguments->at(i).c_str());
 	}
 	toBeReturned[numberOfArgs] = (char *)NULL;
-	cout << "End of argsConversion" << endl;
+//	cout << "End of argsConversion" << endl;
 	return toBeReturned;
 }
 

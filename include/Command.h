@@ -22,6 +22,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include "Utils.h"
+
 using namespace std;
 
 enum typeOfRedirection {none, replace, append};
@@ -53,8 +54,6 @@ public:
 	bool isBackground();
 	string* toString();
 private:
-	pid_t schedulerPID;
-
 	string* commandName;
 	vector<string>* arguments;
 
@@ -69,7 +68,6 @@ private:
 	bool inBackground;
 	int fd; // file descriptor for redirection
 	char** argsConversion();
-
 };
 
 #endif /* COMMAND_H_ */

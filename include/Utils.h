@@ -15,10 +15,9 @@ using namespace std;
 
 class Utils {
 public:
+	static vector<string>* tokenize(string commandString, const char* delimiter);
+private:
 	Utils();
 	virtual ~Utils();
-	static constexpr char* processesFile = "/tmp/processesFile.txt";
-	static vector<string>* tokenize(string commandString, const char* delimiter);
 };
-
 #endif /* UTILS_H_ */

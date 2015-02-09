@@ -25,6 +25,7 @@
 #include "Utils.h"
 #include "Command.h"
 
+// buffer sizes between Command Prompt and Scheduler process
 #define BG_BUFFER_SIZE 2
 #define BUFFER_SIZE 512
 
@@ -33,10 +34,9 @@ using namespace std;
 class Scheduler {
 
 public:
-	static void readPidsFromFile();
-	static void writePidsToFile();
 	static void submitCommandsFromPipe();
 	static void invoke(int *pipefd);
+	static void finalize();
 	static int *pipefds;
 
 
@@ -48,8 +48,6 @@ private:
 	static int indexOfRunningProcess;
 	static void timerHandler(int signal);
 };
-//
-//vector<pid_t>* Scheduler::backgroundPids;
-//int Scheduler::indexOfRunningProcess;
+
 
 #endif /* SCHEDULER_H_ */
