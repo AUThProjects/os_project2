@@ -98,5 +98,5 @@ void Scheduler::invoke(int *pipefd1){
 }
 
 void Scheduler::finalize() {
-//	delete Scheduler::backgroundPids;
+	delete Scheduler::backgroundPids;
 }

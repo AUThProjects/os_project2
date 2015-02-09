@@ -25,6 +25,7 @@ string CommandPrompt::getPwd() {
 }
 
 void CommandPrompt::setPwd(string directory) {
+	delete this->pwd;
 	this->pwd = new string(directory);
 }
 
@@ -33,13 +34,16 @@ void CommandPrompt::showPrompt() {
 	char *hostname = new char[BUFFERSIZE];
 	gethostname(hostname, BUFFERSIZE);
 	char *username = new char[BUFFERSIZE];
-	username = "username should be here";
+	passwd *passwd;
+	passwd = getpwuid(getuid());
+	username = passwd->pw_name;
+	if (username == nullptr)
+		username = "unknown";
 
 	cout << username << '@' << hostname << ':' << *pwd << "$ ";
 }
 
 Command *CommandPrompt::getCommand(string command) {
-	cout << "-------------" << endl;
 	const char* delimiter = " ";
 	pid_t schedulerPID;
 //	vector<string>* arguments;

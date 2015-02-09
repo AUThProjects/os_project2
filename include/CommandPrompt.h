@@ -13,6 +13,7 @@
 #include <unistd.h>
 #include <iostream>
 #include <vector>
+#include <pwd.h>
 #include "Command.h"
 #include "Utils.h"
 

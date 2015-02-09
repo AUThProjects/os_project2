@@ -30,8 +30,7 @@ enum typeOfRedirection {none, replace, append};
 class Command {
 public:
 	Command();
-	Command(pid_t schedulerPID,
-			string* commandName,
+	Command(string* commandName,
 			vector<string>* arguments,
 			Command* pipelineTo,
 			typeOfRedirection redirectTo,

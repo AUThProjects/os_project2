@@ -20,7 +20,6 @@ Command::Command() {
 
 // Overloaded ctor
 Command::Command(
-			pid_t schedulerPID,
 			string* commandName,
 			vector<string>* arguments,
 			Command* pipelineTo,
@@ -42,14 +41,14 @@ Command::Command(
 
 
 Command::~Command() {
-//	delete commandName;
-//	this->arguments->clear();
-//	if(pipelineTo!=nullptr)
-//		delete pipelineTo;
-//	if(fileToRedirectTo!=nullptr)
-//		delete fileToRedirectTo;
-//	if(fileToRedirectFrom!=nullptr)
-//		delete fileToRedirectFrom;
+	delete commandName;
+	delete arguments;
+	if (this->pipelineTo != nullptr)
+		delete pipelineTo;
+	if (this->fileToRedirectTo != nullptr)
+		delete fileToRedirectTo;
+	if (this->fileToRedirectFrom != nullptr)
+		delete fileToRedirectFrom;
 }
 
 // returns the pid of the process if no pipeline, and the pid of the Receiver's part
@@ -58,6 +57,7 @@ int Command::invoke()
 {
 	errno = 0;
 		pid_t pidOfProcessAfterPipelineOperator;
+		// Change directory operation
 		if(*(this->commandName) == "cd")
 		{
 			// 0 -> when found
@@ -66,7 +66,7 @@ int Command::invoke()
 			chdir(arguments->at(0).c_str());
 			return 0;
 		}
-		else if(*(this->commandName) == "exit")
+		else if(*(this->commandName) == "exit") // exit operation
 		{
 			// Scheduler will handle SIGINT signal
 			// and will kill all child processes
@@ -75,7 +75,7 @@ int Command::invoke()
 		}
 		else // execvp commands
 		{
-			int fd, fd2;
+			int fd, fd2; // file descriptors for redirection
 			switch(redirectTo) {
 				case none:
 					break;
@@ -98,13 +98,12 @@ int Command::invoke()
 				fd2 = open(this->fileToRedirectFrom->c_str(), O_RDONLY );
 				if (fd2 < 0) {return -1;}
 			}
-			signal(SIGCHLD, SIG_IGN);
-			pid_t id = fork();
-			if (id <= -1)
+			signal(SIGCHLD, SIG_IGN); // don't care about reporting back about zombie processes
+			pid_t id = fork(); // main fork
+			if (id <= -1) // error case
 				return -1;
 			else if(id==0) //fork before pipeline
 			{
-				//exec the command
 				switch(redirectTo) {
 					case none:
 						break;
@@ -119,7 +118,6 @@ int Command::invoke()
 						break;
 					}
 				}
-
 				if (redirectFrom) {
 					if (dup2(fd2,0) < 0) {return -1;}
 				}
@@ -127,10 +125,10 @@ int Command::invoke()
 				if (pipelineTo) {
 					if (pipe(pipefd)<0)
 						return -2;
-					pid_t pipeSenderPid = fork();
-					if (pipeSenderPid < 0)
+					pid_t pipeSenderPid = fork(); // fork for sender process to be executed
+					if (pipeSenderPid < 0) // error
 						return -1;
-					else if (pipeSenderPid == 0) { //child
+					else if (pipeSenderPid == 0) { // the sender process
 						close(pipefd[0]); // closes stdin pipelining
 						if (dup2(pipefd[1], 1) < 0) {return -1;}
 						char** args = argsConversion();
@@ -166,7 +164,7 @@ int Command::invoke()
 }
 
 
-
+// Prints debugging info about the command
 void Command::printInfo() {
 	cout << *commandName << " ";
 	for (int i=0;i<arguments->size();++i) {
@@ -186,6 +184,7 @@ void Command::printInfo() {
 	cout << endl;
 }
 
+// Serialization method for the pipelining between Scheduler and Command Prompt process
 string* Command::toString(){
 	string delimeter = "@";
 	string* toBeReturned = new string();
@@ -222,9 +221,11 @@ string* Command::toString(){
 	return toBeReturned;
 }
 
+// De-serialization method for the pipelining between Scheduler and Command Prompt process
  Command* Command::readFromString(string s)
 {
-	 cout << "The string is: " << s << endl;
+//	 |--------DEBUG--------|
+//	 cout << "The string is: " << s << endl;
 	vector<string>* tokens = Utils::tokenize(s, "@");
 	Command* command = new Command();
 	command->setCommandName(&tokens->at(0));
@@ -254,7 +255,6 @@ string* Command::toString(){
 }
 
 char** Command::argsConversion() {
-//	cout << "inside argsConversion" << endl;
 	int numberOfArgs = arguments->size();
 	char** toBeReturned = new char*[numberOfArgs+1];
 	for(int i=0;i<numberOfArgs;++i) {
@@ -262,7 +262,6 @@ char** Command::argsConversion() {
 		strcpy(toBeReturned[i], arguments->at(i).c_str());
 	}
 	toBeReturned[numberOfArgs] = (char *)NULL;
-//	cout << "End of argsConversion" << endl;
 	return toBeReturned;
 }
 
@@ -271,7 +270,7 @@ bool Command::isBackground() {
 }
 
 
-// Accessors
+// Accessors - Mutators
 void Command::setPipelineTo(Command* pipelineTo) {
 	this->pipelineTo = pipelineTo;
 }
