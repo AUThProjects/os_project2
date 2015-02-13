@@ -7,7 +7,9 @@
 
 #include "../include/Command.h"
 
-// Default ctor
+/**
+ *  Default ctor
+ */
 Command::Command() {
 	this->commandName = new string();
 	this->arguments = new vector<string>();
@@ -19,7 +21,9 @@ Command::Command() {
 	this->schedulerPid = 0;
 }
 
-// Overloaded ctor
+/**
+ * Overloaded ctor
+ */
 Command::Command(
 			string* commandName,
 			vector<string>* arguments,
@@ -29,8 +33,7 @@ Command::Command(
 			bool redirectFrom,
 			string* fileToRedirectFrom,
 			bool inBackground,
-			pid_t schedulerPid)
-{
+			pid_t schedulerPid) {
 	this->commandName = commandName;
 	this->arguments = arguments;
 	this->pipelineTo = pipelineTo;
@@ -42,7 +45,7 @@ Command::Command(
 	this->schedulerPid = schedulerPid;
 }
 
-
+// Dtor for Comamnd class. Releases resources.
 Command::~Command() {
 	delete commandName;
 	delete arguments;
@@ -54,8 +57,13 @@ Command::~Command() {
 		delete fileToRedirectFrom;
 }
 
-// returns the pid of the process if no pipeline, and the pid of the Receiver's part
-// of the pipeline in case of pipelining.
+/**
+ * returns the pid of the process if no pipeline, and the pid of the Receiver's part
+ * of the pipeline in case of pipelining.
+ * Returns:
+ * -1 when fork fails
+ * -2 pipelining failed
+ */
 int Command::invoke()
 {
 	errno = 0;
@@ -63,9 +71,9 @@ int Command::invoke()
 		// Change directory operation
 		if(*(this->commandName) == "cd")
 		{
+			// errno values
 			// 0 -> when found
 			// -1 -> not found
-			cout << "inside invoke chdir" << endl;
 			chdir(arguments->at(0).c_str());
 			return 0;
 		}
@@ -83,16 +91,16 @@ int Command::invoke()
 		{
 			int fd, fd2; // file descriptors for redirection
 			switch(redirectTo) {
-				case none:
+				case none: // no redirection
 					break;
-				case replace:
+				case replace: // ">" operator
 				{
 					fd = open(this->fileToRedirectTo->c_str(), O_WRONLY | O_CREAT | O_TRUNC , S_IRUSR | S_IWUSR |
 							S_IRGRP | S_IWGRP | S_IROTH);
 					if (fd < 0) {return -1;}
 					break;
 				}
-				case append:
+				case append: // ">>" operator
 				{
 					fd = open(this->fileToRedirectTo->c_str(), O_WRONLY | O_APPEND | O_CREAT, S_IRUSR | S_IWUSR |
 							S_IRGRP | S_IWGRP | S_IROTH);
@@ -100,7 +108,7 @@ int Command::invoke()
 					break;
 				}
 			}
-			if (redirectFrom) {
+			if (redirectFrom) { // "<" operator
 				fd2 = open(this->fileToRedirectFrom->c_str(), O_RDONLY );
 				if (fd2 < 0) {return -1;}
 			}
@@ -110,7 +118,7 @@ int Command::invoke()
 				return -1;
 			else if(id==0) //fork before pipeline
 			{
-				switch(redirectTo) {
+				switch(redirectTo) { // cares about redirection of outputs
 					case none:
 						break;
 					case replace:
@@ -124,11 +132,11 @@ int Command::invoke()
 						break;
 					}
 				}
-				if (redirectFrom) {
+				if (redirectFrom) { // cares about redirection of inputs
 					if (dup2(fd2,0) < 0) {return -1;}
 				}
-				int pipefd[2];
-				if (pipelineTo) {
+				int pipefd[2]; // pipelining pipe
+				if (pipelineTo) { // cares about pipelining
 					if (pipe(pipefd)<0)
 						return -2;
 					pid_t pipeSenderPid = fork(); // fork for sender process to be executed
@@ -148,12 +156,12 @@ int Command::invoke()
 					close(pipefd[1]);
 					int status;
 					wait(&status);
-					pidOfProcessAfterPipelineOperator = this->pipelineTo->invoke(); // command after pipeline
+					pidOfProcessAfterPipelineOperator = this->pipelineTo->invoke(); // invokes command after pipeline operator
 				}
 				int returnCode;
 				if (pipelineTo == nullptr) {
 					char** args = argsConversion();
-					returnCode = execvp(this->commandName->c_str(), args); // execute the second part of the pipeline // basic execution of simple command
+					returnCode = execvp(this->commandName->c_str(), args); // executes command after pipeline // basic execution of simple command
 				}
 			}
 			else
@@ -170,7 +178,9 @@ int Command::invoke()
 }
 
 
-// Prints debugging info about the command
+/**
+ * Prints debugging info about the command.
+ */
 void Command::printInfo() {
 	cout << *commandName << " ";
 	for (int i=0;i<arguments->size();++i) {
@@ -190,9 +200,11 @@ void Command::printInfo() {
 	cout << endl;
 }
 
-// Serialization method for the pipelining between Scheduler and Command Prompt process
+/**
+ *  Serialization method for the pipelining between Scheduler and Command Prompt process
+ */
 string* Command::toString(){
-	string delimeter = "@";
+	string delimeter = "@"; // picked because it's not used in common commands (2nd thought used in ssh!)
 	string* toBeReturned = new string();
 	(*toBeReturned) += *commandName;
 	(*toBeReturned) += delimeter;
@@ -227,7 +239,9 @@ string* Command::toString(){
 	return toBeReturned;
 }
 
-// De-serialization method for the pipelining between Scheduler and Command Prompt process
+/*
+ *  De-serialization method for the pipelining between Scheduler and Command Prompt process
+ */
  Command* Command::readFromString(string s)
 {
 //	 |--------DEBUG--------|
@@ -260,6 +274,9 @@ string* Command::toString(){
 	return command;
 }
 
+ /**
+  * Helper method for converting vector<string*> --> char*[]
+  */
 char** Command::argsConversion() {
 	int numberOfArgs = arguments->size();
 	char** toBeReturned = new char*[numberOfArgs+1];
@@ -271,6 +288,9 @@ char** Command::argsConversion() {
 	return toBeReturned;
 }
 
+/**
+ * Checker for any of the commands being sent in background.
+ */
 bool Command::isBackground() {
 	return inBackground || ((pipelineTo != nullptr) && pipelineTo->inBackground);
 }

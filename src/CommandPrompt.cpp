@@ -73,6 +73,7 @@ Command *CommandPrompt::getCommand(string command) {
 	theCommand->setInBackground(isBackground);
 	theCommand->setSchedulerPid(this->schedulerPid);
 
+	delete theTwoParts;
 	return theCommand;
 }
 
