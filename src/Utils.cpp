@@ -6,9 +6,6 @@
  */
 
 #include "../include/Utils.h"
-#define EXIT_OK 0
-#define EXIT_SCHEDULER_INIT_FAIL -1
-
 
 
 Utils::Utils() {
@@ -17,7 +14,9 @@ Utils::Utils() {
 Utils::~Utils() {
 }
 
-// tokenizer for Command Prompt (works with different delimeters)
+/**
+ * tokenizer for Command Prompt (works with different delimeters)
+ */
 vector<string>* Utils::tokenize(string commandString, const char* delimiter) {
 	int stringLength = commandString.length();
 	int delimiterLength = strlen(delimiter);

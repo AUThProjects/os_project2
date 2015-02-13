@@ -11,6 +11,10 @@
 #include <string>
 #include <vector>
 #include <cstring>
+
+#define EXIT_OK 0
+#define EXIT_SCHEDULER_INIT_FAIL -1
+
 using namespace std;
 
 class Utils {
