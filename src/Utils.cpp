@@ -6,6 +6,10 @@
  */
 
 #include "../include/Utils.h"
+#define EXIT_OK 0
+#define EXIT_SCHEDULER_INIT_FAIL -1
+
+
 
 Utils::Utils() {
 }
