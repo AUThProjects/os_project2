@@ -43,16 +43,14 @@ int main()
 	{
 		int schedulerProcessStatus;
 		waitpid(schedulerPid, &schedulerProcessStatus, WNOHANG); // we need parallel execution of Command Prompt and Scheduler
+		CommandPrompt *cmd = new CommandPrompt();
 		while (true) {
-			CommandPrompt *cmd = new CommandPrompt();
 			cmd->showPrompt();
 			string input;
 			cin.clear();
 			fflush(stdin);
 			getline(cin, input); // read command from the user
 			Command* myCommand = cmd->getCommand(input);
-
-
 //			|--------DEBUG--------|
 
 //			cout << *s << endl;
@@ -77,6 +75,8 @@ int main()
 				write(pipefd[3], buffer, BG_BUFFER_SIZE);
 				string* s = myCommand->toString();
 				write(pipefd[1], s->c_str(), BUFFER_SIZE);
+				delete buffer;
+				delete s;
 			}
 			else
 				myCommand->invoke(); // invoking command in foreground
@@ -87,5 +87,6 @@ int main()
 //			CommandPrompt::sysCallErrorHandling();
 
 		}
+		delete cmd;
 	}
 }
