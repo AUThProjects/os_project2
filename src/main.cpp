@@ -54,8 +54,11 @@ int main()
 			cin.clear();
 			fflush(stdin);
 			getline(cin, input); // read command from the user
+			if (input.empty())
+				continue;
 			Command* myCommand = cmd->getCommand(input); // create the actual command object
-
+			if (myCommand == nullptr)
+				continue;
 			// Submit job to scheduler if the command is to be run in background
 			/*
 			 * We need background processes to be children of the scheduler process.
