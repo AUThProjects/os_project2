@@ -66,6 +66,10 @@ Command *CommandPrompt::getCommand(string command) {
 
 	vector<string> *args = Utils::tokenize((*theTwoParts)[0], delimiter);
 
+	if (args->size() == 0) {
+		delete args;
+		return nullptr;
+	}
 	bool isBackground = parseForBackgroundProcess(args);
 	string *commandName = new string(args->at(0));
 	theCommand->setCommandName(commandName);

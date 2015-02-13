@@ -1,0 +1,14 @@
+drwxrwxr-x 2 steve steve  4096 Feb 13 19:24 include
+drwxrwxr-x 2 steve steve  4096 Feb 13 19:26 .settings
+drwxrwxr-x 2 steve steve  4096 Feb 13 20:26 src
+drwxrwxr-x 4 steve steve  4096 Feb 13 21:21 Default
+drwxrwxr-x 4 steve steve  4096 Jan 13 16:22 .metadata
+drwxrwxr-x 5 steve steve  4096 Jan 13 16:22 ..
+drwxrwxr-x 8 steve steve  4096 Feb 13 21:10 .
+drwxrwxr-x 8 steve steve  4096 Feb 13 21:20 .git
+-rw-rw-r-- 1 steve steve 20052 Feb 13 20:14 Report.docx
+-rw-rw-r-- 1 steve steve    20 Jan 13 16:22 .gitignore
+-rw-rw-r-- 1 steve steve  5157 Feb 13 19:37 .cproject
+-rw-rw-r-- 1 steve steve   812 Jan 13 16:22 .project
+-rw-rw-r-- 1 steve steve   833 Feb 13 19:24 README.md
+total 72
