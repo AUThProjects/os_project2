@@ -8,11 +8,12 @@
 #include "../include/CommandPrompt.h"
 
 
-CommandPrompt::CommandPrompt() {
+CommandPrompt::CommandPrompt(pid_t schedulerPid) {
 	const int BUFFERSIZE = 150;
 	char *pwd = new char[BUFFERSIZE];
 	getcwd(pwd, BUFFERSIZE);
 	this->pwd = new string(pwd);
+	this->schedulerPid = schedulerPid;
 	delete pwd;
 }
 
@@ -72,22 +73,8 @@ Command *CommandPrompt::getCommand(string command) {
 	theCommand->setCommandName(commandName);
 	theCommand->setArguments(args);
 	theCommand->setInBackground(isBackground);
-	// args->erase(args->begin());
-//	Command *myCmd = new Command(0,
-//			commandName,
-//			args,
-//			pipelineTo,
-//			redirectTo,
-//			fileToRedirectTo,
-//			redirectFrom,
-//			fileToRedirectFrom,
-//			isBackground);
-//	myCmd->printInfo();
-//	for(int i=0;i<args->size();++i)
-//		cout << i <<". "<< (*args)[i] << " ";
-//	cout << endl;
-//	return myCmd;
-//	theCommand->printInfo();
+	theCommand->setSchedulerPid(this->schedulerPid);
+
 	return theCommand;
 }
 

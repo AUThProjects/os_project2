@@ -22,7 +22,7 @@ using namespace std;
 enum TypeOfOperator {from, to, to_app, pipel};
 class CommandPrompt {
 public:
-	CommandPrompt();
+	CommandPrompt(pid_t schedulerPid);
 	virtual ~CommandPrompt();
 
 	string getPwd();
@@ -31,6 +31,7 @@ public:
 	Command *getCommand(string command);
 	static void sysCallErrorHandling();
 private:
+	pid_t schedulerPid;
 	string *pwd; // present working directory
 	bool parseForBackgroundProcess(vector<string>* args);
 	vector<string>* parseForOperator(TypeOfOperator too, string stringToParse, Command* command);

@@ -16,6 +16,7 @@ Command::Command() {
 	this->fileToRedirectTo = nullptr;
 	this->redirectFrom = false;
 	this->fileToRedirectFrom = nullptr;
+	this->schedulerPid = 0;
 }
 
 // Overloaded ctor
@@ -27,7 +28,8 @@ Command::Command(
 			string* fileToRedirectTo,
 			bool redirectFrom,
 			string* fileToRedirectFrom,
-			bool inBackground)
+			bool inBackground,
+			pid_t schedulerPid)
 {
 	this->commandName = commandName;
 	this->arguments = arguments;
@@ -37,6 +39,7 @@ Command::Command(
 	this->redirectFrom = redirectFrom;
 	this->fileToRedirectFrom = fileToRedirectFrom;
 	this->inBackground = inBackground;
+	this->schedulerPid = schedulerPid;
 }
 
 
@@ -71,6 +74,9 @@ int Command::invoke()
 			// Scheduler will handle SIGINT signal
 			// and will kill all child processes
 			// and exit.
+			int status;
+			kill(schedulerPid, SIGINT);
+			wait(&status);
 			exit(0);
 		}
 		else // execvp commands
@@ -295,3 +301,7 @@ void Command::setRedirectFrom(string* fileToRedirectFrom) {
 void Command::setInBackground(bool inBackground) {
 	this->inBackground = inBackground;
 }
+
+void Command::setSchedulerPid(pid_t schedulerPid) {
+	this->schedulerPid = schedulerPid;
+	}

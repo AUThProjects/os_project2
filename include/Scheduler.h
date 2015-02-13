@@ -13,6 +13,7 @@
 #include <string>
 #include <cstring>
 #include <signal.h>
+#include <csignal>
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -36,7 +37,7 @@ class Scheduler {
 public:
 	static void submitCommandsFromPipe();
 	static void invoke(int *pipefd);
-	static void finalize();
+	static void finalize(int signum);
 	static int *pipefds;
 
 

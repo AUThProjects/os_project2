@@ -84,6 +84,8 @@ void Scheduler::timerHandler(int signal){
 
 // initial call of the scheduler after forking from command prompt
 void Scheduler::invoke(int *pipefd1){
+	// register exit signal listener
+	signal(SIGINT, &Scheduler::finalize);
 	// initialization of pipes and itimer call
 	pipefds = pipefd1;
 	close(pipefds[1]);
@@ -97,6 +99,13 @@ void Scheduler::invoke(int *pipefd1){
 	while(true) {} // spinlock
 }
 
-void Scheduler::finalize() {
+void Scheduler::finalize(int signum) {
+	cout << "Killing scheduler" << endl;
+	for(int i=0;i<Scheduler::backgroundPids->size();++i)
+	{
+		cout << "killing pid " << backgroundPids->at(i) << endl;
+		kill(backgroundPids->at(i), SIGKILL);
+	}
 	delete Scheduler::backgroundPids;
+	exit(signum);
 }

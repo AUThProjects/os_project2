@@ -37,7 +37,8 @@ public:
 			string* fileToRedirectTo,
 			bool redirectFrom,
 			string* fileToRedirectFrom,
-			bool inBackground);
+			bool inBackground,
+			pid_t schedulerPid);
 			void printInfo();
 	virtual ~Command();
 
@@ -51,6 +52,7 @@ public:
 	void setInBackground(bool inBackground);
 	static Command* readFromString(string s);
 	bool isBackground();
+	void setSchedulerPid(pid_t schedulerPid);
 	string* toString();
 private:
 	string* commandName;
@@ -66,6 +68,8 @@ private:
 
 	bool inBackground;
 	int fd; // file descriptor for redirection
+
+	pid_t schedulerPid;
 	char** argsConversion();
 };
 

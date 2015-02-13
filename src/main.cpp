@@ -41,9 +41,10 @@ int main()
 	}
 	else
 	{
+		cout << "schedulerPID" << schedulerPid;
 		int schedulerProcessStatus;
 		waitpid(schedulerPid, &schedulerProcessStatus, WNOHANG); // we need parallel execution of Command Prompt and Scheduler
-		CommandPrompt *cmd = new CommandPrompt();
+		CommandPrompt *cmd = new CommandPrompt(schedulerPid);
 		while (true) {
 			cmd->showPrompt();
 			string input;
