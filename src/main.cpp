@@ -17,6 +17,9 @@
 
 using namespace std;
 
+/**
+ * Entry point for our application.
+ */
 int main()
 {
 	/*
@@ -34,15 +37,15 @@ int main()
 
 	if(schedulerPid==0) { // Scheduler process
 		close(pipefd[1]); // close read end from the commands lane
-		Scheduler::invoke(pipefd);
+		Scheduler::invoke(pipefd); // launch the scheduler timer
 	}
 	else if (schedulerPid < 0) {
 		cerr << "Could not start scheduler." << endl; // and do what?
+		exit(EXIT_SCHEDULER_INIT_FAIL);
 	}
 	else
 	{
-		cout << "schedulerPID" << schedulerPid;
-		int schedulerProcessStatus;
+		int schedulerProcessStatus; // for waitpid
 		waitpid(schedulerPid, &schedulerProcessStatus, WNOHANG); // we need parallel execution of Command Prompt and Scheduler
 		CommandPrompt *cmd = new CommandPrompt(schedulerPid);
 		while (true) {
@@ -51,13 +54,7 @@ int main()
 			cin.clear();
 			fflush(stdin);
 			getline(cin, input); // read command from the user
-			Command* myCommand = cmd->getCommand(input);
-//			|--------DEBUG--------|
-
-//			cout << *s << endl;
-//			Command *newCommand = Command::readFromString(*s);
-//			cout << "printing info in main:" << endl;
-//			newCommand->printInfo();
+			Command* myCommand = cmd->getCommand(input); // create the actual command object
 
 			// Submit job to scheduler if the command is to be run in background
 			/*
