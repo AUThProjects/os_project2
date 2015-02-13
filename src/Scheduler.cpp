@@ -12,12 +12,17 @@ int Scheduler::indexOfRunningProcess = 0;
 int *Scheduler::pipefds = new int [4];
 
 Scheduler::Scheduler() {
+	// static class, private and not really used
 }
 
 Scheduler::~Scheduler() {
+	// static class, private and not really used
 }
 
-
+/**
+ * Reads from pipe with main process (command prompt process) and
+ * submits the command for scheduling (invocation and SIGSTOP).
+ */
 void Scheduler::submitCommandsFromPipe() {
 	Command* current = nullptr;
 	char readbuffer_bg[BG_BUFFER_SIZE];
@@ -35,11 +40,13 @@ void Scheduler::submitCommandsFromPipe() {
 		 */
 		pid_t pidOfNewCommandInBackground = current->invoke();
 
+//		|--------DEBUG--------|
 //		cout << "New command started: " << pidOfNewCommandInBackground << endl;
 
 		backgroundPids->push_back(pidOfNewCommandInBackground);
 		kill(pidOfNewCommandInBackground, SIGSTOP);
-
+		delete current; // not used after invokation as commmand object
+//		|--------DEBUG--------|
 //		cout << "New command stopped: " << pidOfNewCommandInBackground << endl;
 	}
 	// Update buffer
@@ -47,7 +54,9 @@ void Scheduler::submitCommandsFromPipe() {
 	write(pipefds[3], readbuffer_bg, BG_BUFFER_SIZE);
 }
 
-// the main service of the scheduler
+/**
+ *  the main service of the scheduler. Invoked by the itimer.
+ */
 void Scheduler::timerHandler(int signal){
 	// Read from pipe
 	submitCommandsFromPipe();
@@ -82,7 +91,9 @@ void Scheduler::timerHandler(int signal){
 	indexOfRunningProcess = indexOfProcessToRun;
 }
 
-// initial call of the scheduler after forking from command prompt
+/**
+ *  initial call of the scheduler after forking from command prompt
+ */
 void Scheduler::invoke(int *pipefd1){
 	// register exit signal listener
 	signal(SIGINT, &Scheduler::finalize);
@@ -99,13 +110,20 @@ void Scheduler::invoke(int *pipefd1){
 	while(true) {} // spinlock
 }
 
+/**
+ * Called to stop running processes and exit when user exits the program.
+ * Responds to signal from main process.
+ */
 void Scheduler::finalize(int signum) {
-	cout << "Killing scheduler" << endl;
+//	|--------DEBUG--------|
+//	cout << "Killing scheduler" << endl;
 	for(int i=0;i<Scheduler::backgroundPids->size();++i)
 	{
-		cout << "killing pid " << backgroundPids->at(i) << endl;
+//		|--------DEBUG--------|
+//		cout << "killing pid " << backgroundPids->at(i) << endl;
 		kill(backgroundPids->at(i), SIGKILL);
 	}
 	delete Scheduler::backgroundPids;
+	delete Scheduler::pipefds;
 	exit(signum);
 }
