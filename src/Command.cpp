@@ -64,21 +64,18 @@ Command::~Command() {
  * -1 when fork fails
  * -2 pipelining failed
  */
-int Command::invoke()
-{
+int Command::invoke() {
 	errno = 0;
 		pid_t pidOfProcessAfterPipelineOperator;
 		// Change directory operation
-		if(*(this->commandName) == "cd")
-		{
+		if(*(this->commandName) == "cd") {
 			// errno values
 			// 0 -> when found
 			// -1 -> not found
 			chdir(arguments->at(0).c_str());
 			return 0;
 		}
-		else if(*(this->commandName) == "exit") // exit operation
-		{
+		else if(*(this->commandName) == "exit") { // exit operation
 			// Scheduler will handle SIGINT signal
 			// and will kill all child processes
 			// and exit.
@@ -87,8 +84,7 @@ int Command::invoke()
 			wait(&status);
 			exit(0);
 		}
-		else // execvp commands
-		{
+		else { // execvp commands
 			int fd, fd2; // file descriptors for redirection
 			switch(redirectTo) {
 				case none: // no redirection
@@ -116,8 +112,7 @@ int Command::invoke()
 			pid_t id = fork(); // main fork
 			if (id <= -1) // error case
 				return -1;
-			else if(id==0) //fork before pipeline
-			{
+			else if(id==0) { //fork before pipeline
 				switch(redirectTo) { // cares about redirection of outputs
 					case none:
 						break;
@@ -203,7 +198,7 @@ void Command::printInfo() {
 /**
  *  Serialization method for the pipelining between Scheduler and Command Prompt process
  */
-string* Command::toString(){
+string* Command::toString() {
 	string delimeter = "@"; // picked because it's not used in common commands (2nd thought used in ssh!)
 	string* toBeReturned = new string();
 	(*toBeReturned) += *commandName;
@@ -242,10 +237,7 @@ string* Command::toString(){
 /*
  *  De-serialization method for the pipelining between Scheduler and Command Prompt process
  */
- Command* Command::readFromString(string s)
-{
-//	 |--------DEBUG--------|
-//	 cout << "The string is: " << s << endl;
+ Command* Command::readFromString(string s) {
 	vector<string>* tokens = Utils::tokenize(s, "@");
 	Command* command = new Command();
 	command->setCommandName(&tokens->at(0));

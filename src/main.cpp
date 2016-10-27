@@ -20,8 +20,7 @@ using namespace std;
 /**
  * Entry point for our application.
  */
-int main()
-{
+int main() {
 	/*
 	 * Double pipelining.
 	 * 1st lane("Commands lane"): commands to be executed in background
@@ -43,8 +42,7 @@ int main()
 		cerr << "Could not start scheduler." << endl; // and do what?
 		exit(EXIT_SCHEDULER_INIT_FAIL);
 	}
-	else
-	{
+	else {
 		int schedulerProcessStatus; // for waitpid
 		waitpid(schedulerPid, &schedulerProcessStatus, WNOHANG); // we need parallel execution of Command Prompt and Scheduler
 		CommandPrompt *cmd = new CommandPrompt(schedulerPid);
@@ -66,9 +64,6 @@ int main()
 			if (myCommand->isBackground()) {
 				char readbuffer[BG_BUFFER_SIZE];
 				read(pipefd[2], readbuffer, BG_BUFFER_SIZE);
-
-//				|--------DEBUG--------|
-				//cout << "main: just read from 2nd pipe: " << readbuffer << endl;
 
 				int bg_buffer = atoi(readbuffer);
 				char* buffer = new char[BG_BUFFER_SIZE];
